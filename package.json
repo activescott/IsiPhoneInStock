@@ -1,0 +1,19 @@
+{
+  "name": "IsiPhoneInStock",
+  "version": "1.0.0",
+  "description": "Here's a little ditty about finding an iPhone available for pickup...",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/activescott/IsiPhoneInStock.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/activescott/IsiPhoneInStock/issues"
+  },
+  "homepage": "https://github.com/activescott/IsiPhoneInStock"
+}
