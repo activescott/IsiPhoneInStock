@@ -6,6 +6,7 @@ var querystring = require('querystring'),
         url = require('url'),
         Q = require('q'),
         os = require('os'),
+        util = require('util'),
         setTimeout = require('timers').setTimeout,
         clearTimeout = require('timers').clearTimeout;
 
@@ -27,14 +28,14 @@ function findMyIPhoneLoop () {
 		clearTimeout(waitingIndicatorTimer);
 		process.stdout.write(os.EOL);
 	}
-
+	util.log('Beginning search...');
 	findMyIPhone(searchOptions)
 	.then(function (foundPhones) {
 		foundPhones.forEach(function (foundPhone) {
-			console.log('Item ' + foundPhone.name + ' available at store ' + foundPhone.store.name + ' in ' + foundPhone.store.city + ', ' + foundPhone.store.state + '.');
+			util.log('Item ' + foundPhone.name + ' available at store ' + foundPhone.store.name + ' in ' + foundPhone.store.city + ', ' + foundPhone.store.state + '.');
 		});
 		if (foundPhones.length == 0) {
-			console.log('None found.');
+			util.log('None found.');
 		}
 		var seconds = 1000;
 		var minutes = 1000*60
@@ -143,7 +144,7 @@ function getFoundParts(json) {
 	}
 	var allStores = json.body.stores;
 	var foundParts = [];
-	console.log('Searching ' + allStores.length + ' stores...');
+	util.log('Searching ' + allStores.length + ' stores...');
 	for (var storeIndex=0; storeIndex < allStores.length; storeIndex++) {
 		var aStore = allStores[storeIndex];
 		var parts = aStore.partsAvailability;

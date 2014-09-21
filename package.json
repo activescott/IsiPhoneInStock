@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/activescott/IsiPhoneInStock/issues"
   },
-  "homepage": "https://github.com/activescott/IsiPhoneInStock"
+  "homepage": "https://github.com/activescott/IsiPhoneInStock",
+  "dependencies": {
+    "aws-sdk": "^2.0.17",
+    "q": "^1.0.1"
+  }
 }
