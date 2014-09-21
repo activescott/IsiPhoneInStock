@@ -8,21 +8,38 @@ var querystring = require('querystring'),
         os = require('os'),
         util = require('util'),
         setTimeout = require('timers').setTimeout,
-        clearTimeout = require('timers').clearTimeout;
+        clearTimeout = require('timers').clearTimeout,
+        models = require('./models');
 
+var iphone6 = models['iphone-6'];
 var referer = 'http://store.apple.com/us/buy-iphone/iphone6/4.7-inch-display-64gb-space-gray-t-mobile';
 
-var searchOptions = {
-	zip: '98033',
-	part: 'MG5A2LL/A',
-	stateFilter: 'WA'
-};
 
-findMyIPhoneLoop();
+var loopOptions = {
+	zip: '98033',
+	parts: [ 
+		iphone6['tmobile']['gray']['64'],
+		iphone6['tmobile']['gold']['64'], 
+		iphone6['tmobile']['silver']['64'],
+		iphone6['tmobile']['gray']['128'],
+		iphone6['tmobile']['gold']['128'], 
+		iphone6['tmobile']['silver']['128'],
+
+		iphone6['att']['gray']['64'],
+		iphone6['att']['gold']['64'], 
+		iphone6['att']['silver']['64'],
+		iphone6['att']['gray']['128'],
+		iphone6['att']['gold']['128'], 
+		iphone6['att']['silver']['128']
+	],
+	stateFilter: ''
+}
+findMyIPhoneLoop(loopOptions);
+//console.log("prettyName:" + models.prettyNameFromModel(iphone6['att']['gray']['128']))
 
 
 var waitingIndicatorTimer;
-function findMyIPhoneLoop () {
+function findMyIPhoneLoop (searchOptions) {
 	
 	if (waitingIndicatorTimer != null) {
 		clearTimeout(waitingIndicatorTimer);
@@ -32,7 +49,7 @@ function findMyIPhoneLoop () {
 	findMyIPhone(searchOptions)
 	.then(function (foundPhones) {
 		foundPhones.forEach(function (foundPhone) {
-			util.log('Item ' + foundPhone.name + ' available at store ' + foundPhone.store.name + ' in ' + foundPhone.store.city + ', ' + foundPhone.store.state + '.');
+			util.log(models.prettyNameFromModel(foundPhone.name) + ' (' + foundPhone.name + ')' + ' available at store ' + foundPhone.store.name + ' in ' + foundPhone.store.city + ', ' + foundPhone.store.state + '.');
 		});
 		if (foundPhones.length == 0) {
 			util.log('None found.');
@@ -61,12 +78,15 @@ function findMyIPhoneLoop () {
 	 - referrer (NOT NEEDED?)
 	 - stateFilter
 */
-function findMyIPhone(findMyIPhoneOptions) {
+function findMyIPhone(searchOptions) {
 	var deferred = Q.defer();
 	var queryObj = {
-		"parts.0": findMyIPhoneOptions.part,
-		"zip": findMyIPhoneOptions.zip
+		"zip": searchOptions.zip
 	};
+	for (var idx=0; idx < searchOptions.parts.length; idx++) {
+		queryObj["parts." + idx.toString()] = searchOptions.parts[idx];
+	}
+
 	var urlObj = {
 		pathname: '/us/retailStore/availabilitySearch',
 		query: queryObj
@@ -89,6 +109,8 @@ function findMyIPhone(findMyIPhoneOptions) {
 	  }
 	};
 
+	//console.log('httpOptions:', httpOptions);
+
 	var req = http.request(httpOptions, function (res) {
 		res.setEncoding('utf-8');
 		var resString = '';
@@ -99,7 +121,7 @@ function findMyIPhone(findMyIPhoneOptions) {
 
 		res.on('end', function() {
 			var resJson = JSON.parse(resString);
-			deferred.resolve(getFoundParts(resJson));
+			deferred.resolve(parseAvailabilityResponse(resJson, searchOptions));
 		});
 	}).on('error', function(e) {
 		console.log("error in request");
@@ -121,7 +143,7 @@ function findMyIPhone(findMyIPhoneOptions) {
 	Returns:
 	 The complete list of found parts or an empty array if none found.
 */
-function getFoundParts(json) {
+function parseAvailabilityResponse(json, searchOptions) {
 	/*
 	key fields:
 	body.success//true
@@ -143,6 +165,7 @@ function getFoundParts(json) {
 		return;
 	}
 	var allStores = json.body.stores;
+	//debugTrace(allStores);
 	var foundParts = [];
 	util.log('Searching ' + allStores.length + ' stores...');
 	for (var storeIndex=0; storeIndex < allStores.length; storeIndex++) {
@@ -150,7 +173,8 @@ function getFoundParts(json) {
 		var parts = aStore.partsAvailability;
 		for (var partName in parts) {
 			var partObj = parts[partName];
-			if (partObj.storeSelectionEnabled && storeMeetsCriteria(aStore)) {
+			//debugTrace(partObj);
+			if (partObj.storeSelectionEnabled && storeMeetsCriteria(aStore, searchOptions)) {
 				var foundPart = {
 					name: partName,
 					store: {
@@ -166,7 +190,7 @@ function getFoundParts(json) {
 	return foundParts;
 }
 
-function storeMeetsCriteria(store) {
+function storeMeetsCriteria(store, searchOptions) {
 	if (searchOptions.stateFilter != null && searchOptions.stateFilter.length > 0) {
 		if (searchOptions.stateFilter != store.state)
 			return false;
@@ -174,3 +198,7 @@ function storeMeetsCriteria(store) {
 	return true;
 }
 
+
+function debugTrace(obj) {
+	console.log(util.inspect(obj), {colors:true, depth:null})
+}
