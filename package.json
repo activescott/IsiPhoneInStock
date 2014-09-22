@@ -2,6 +2,7 @@
   "name": "IsiPhoneInStock",
   "version": "1.0.0",
   "description": "Here's a little ditty about finding an iPhone available for pickup...",
+  "bin" : { "isiphoneinstock" : "app.js" },
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -18,6 +19,7 @@
   "homepage": "https://github.com/activescott/IsiPhoneInStock",
   "dependencies": {
     "aws-sdk": "^2.0.17",
+    "nconf": "^0.6.9",
     "q": "^1.0.1"
   }
 }

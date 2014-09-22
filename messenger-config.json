@@ -1,0 +1,3 @@
+{
+  "aws.sns.TopicArn": "arn:aws:sns:YOURREGION:SOMENUMBER:YOURTOPICNAME"
+}

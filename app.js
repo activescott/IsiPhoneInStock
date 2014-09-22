@@ -9,11 +9,11 @@ var querystring = require('querystring'),
         util = require('util'),
         setTimeout = require('timers').setTimeout,
         clearTimeout = require('timers').clearTimeout,
-        models = require('./models');
+        models = require('./models'),
+        Messenger = require('./messenger');
 
 var iphone6 = models['iphone-6'];
 var referer = 'http://store.apple.com/us/buy-iphone/iphone6/4.7-inch-display-64gb-space-gray-t-mobile';
-
 
 var loopOptions = {
 	zip: '98033',
@@ -32,7 +32,7 @@ var loopOptions = {
 		iphone6['att']['gold']['128'], 
 		iphone6['att']['silver']['128']
 	],
-	stateFilter: ''
+	stateFilter: 'WA'
 }
 findMyIPhoneLoop(loopOptions);
 //console.log("prettyName:" + models.prettyNameFromModel(iphone6['att']['gray']['128']))
@@ -48,8 +48,11 @@ function findMyIPhoneLoop (searchOptions) {
 	util.log('Beginning search...');
 	findMyIPhone(searchOptions)
 	.then(function (foundPhones) {
+		var messenger = new Messenger();
 		foundPhones.forEach(function (foundPhone) {
-			util.log(models.prettyNameFromModel(foundPhone.name) + ' (' + foundPhone.name + ')' + ' available at store ' + foundPhone.store.name + ' in ' + foundPhone.store.city + ', ' + foundPhone.store.state + '.');
+			var msg = models.prettyNameFromModel(foundPhone.name) + ' (' + foundPhone.name + ')' + ' available at store ' + foundPhone.store.name + ' in ' + foundPhone.store.city + ', ' + foundPhone.store.state + '.';
+			util.log(msg);
+			messenger.sendSMS(msg)
 		});
 		if (foundPhones.length == 0) {
 			util.log('None found.');
