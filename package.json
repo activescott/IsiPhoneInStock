@@ -2,8 +2,8 @@
   "name": "IsiPhoneInStock",
   "version": "1.0.0",
   "description": "Here's a little ditty about finding an iPhone available for pickup...",
-  "bin" : { "isiphoneinstock" : "app.js" },
-  "main": "app.js",
+  "bin" : { "isiphoneinstock" : "index.js" },
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

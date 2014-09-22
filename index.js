@@ -10,7 +10,7 @@ var querystring = require('querystring'),
         setTimeout = require('timers').setTimeout,
         clearTimeout = require('timers').clearTimeout,
         models = require('./models'),
-        Messenger = require('./messenger');
+        messenger = require('./messenger');
 
 var iphone6 = models['iphone-6'];
 var referer = 'http://store.apple.com/us/buy-iphone/iphone6/4.7-inch-display-64gb-space-gray-t-mobile';
@@ -30,7 +30,6 @@ findMyIPhoneLoop(loopOptions);
 
 var waitingIndicatorTimer;
 function findMyIPhoneLoop (searchOptions) {
-	var messenger = new Messenger();
 	if (waitingIndicatorTimer != null) {
 		clearTimeout(waitingIndicatorTimer);
 		process.stdout.write(os.EOL);

@@ -2,13 +2,12 @@ var	AWS = require('aws-sdk'),
 	nconf = require('nconf'),
 	Q = require('q');
 
-module.exports = Messenger;
 
-Messenger.ConfKeys = {
+var ConfKeys = {
 	SnsTopicArn: 'aws.sns.TopicArn'
 };
 
-Messenger.isAWSInitialized = false;
+var isAWSInitialized = false;
 function initAWS() {
 	if (!Messenger.isAWSInitialized) {
 		AWS.config.loadFromPath('./aws-sdk-secrets.json');
@@ -16,7 +15,7 @@ function initAWS() {
 	}
 };
 
-Messenger.isConfigLoaded = false;
+var isConfigLoaded = false;
 function loadConfig() {
 	if (!Messenger.isConfigLoaded) {
 		nconf.argv()
@@ -24,8 +23,9 @@ function loadConfig() {
 			.file({ file: 'messenger-config.json' });
 		Messenger.isConfigLoaded = true;
 	}
-
 };
+
+module.exports = new Messenger();
 
 function Messenger() {
 	if (!(this instanceof Messenger)) return new Messenger();
@@ -33,7 +33,7 @@ function Messenger() {
 	loadConfig();
 
 	this.saveDefaultConfig = function() {
-		nconf.set(Messenger.ConfKeys.SnsTopicArn, 'arn:aws:sns:YOURREGION:SOMENUMBER:YOURTOPICNAME');
+		nconf.set(ConfKeys.SnsTopicArn, 'arn:aws:sns:YOURREGION:SOMENUMBER:YOURTOPICNAME');
 		nconf.save();
 	};
 	// Sends the specified message and returns a promise.
@@ -42,7 +42,7 @@ function Messenger() {
 		var sns = new AWS.SNS();
 		var params = {
 			Message: msg, /* required */
-			TopicArn: nconf.get(Messenger.ConfKeys.SnsTopicArn)
+			TopicArn: nconf.get(ConfKeys.SnsTopicArn)
 		};
 
 		var request = sns.publish(params, function(err, data) {
@@ -98,3 +98,4 @@ function Messenger() {
 	}
 	*/
 };
+
