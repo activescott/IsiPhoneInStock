@@ -30,7 +30,7 @@ findMyIPhoneLoop(loopOptions);
 
 var waitingIndicatorTimer;
 function findMyIPhoneLoop (searchOptions) {
-	
+	var messenger = new Messenger();
 	if (waitingIndicatorTimer != null) {
 		clearTimeout(waitingIndicatorTimer);
 		process.stdout.write(os.EOL);
@@ -38,18 +38,28 @@ function findMyIPhoneLoop (searchOptions) {
 	util.log('Beginning search...');
 	findMyIPhone(searchOptions)
 	.then(function (foundPhones) {
-		var messenger = new Messenger();
 		foundPhones.forEach(function (foundPhone) {
 			var msg = models.prettyNameFromModel(foundPhone.name) + ' (' + foundPhone.name + ')' + ' available at store ' + foundPhone.store.name + ' in ' + foundPhone.store.city + ', ' + foundPhone.store.state + '.';
 			util.log(msg);
-			messenger.sendSMS(msg)
+			messenger.sendSMS(msg).then(function () {}, function(err) {
+				util.log('error sending sms');
+			});
 		});
 		if (foundPhones.length == 0) {
 			util.log('None found.');
 		}
+	}, function(err) {
+		var msg = 'Error performing search:' + err; 
+		console.log(msg);
+		messenger.sendSMS(msg).then(function () {}, function(err) {
+			util.log('error sending sms');
+		});
+	})
+	.fin(function() {// fin=finally
+		// restart the loop:
 		var seconds = 1000;
 		var minutes = seconds*60;
-		var delay = 10*minutes;
+		var delay = minutes*10;
 		process.stdout.write('Waiting ' + delay/seconds + ' seconds.');
 		setTimeout(function () {findMyIPhoneLoop(searchOptions)}, delay);
 
@@ -58,7 +68,8 @@ function findMyIPhoneLoop (searchOptions) {
 			waitingIndicatorTimer = setTimeout(dotToConsole, seconds*1);
 		};
 		dotToConsole();
-	});
+	})
+	.done();
 	
 }
 
@@ -113,12 +124,18 @@ function findMyIPhone(searchOptions) {
 		});
 
 		res.on('end', function() {
-			var resJson = JSON.parse(resString);
+			var resJson;
+			try {
+				resJson = JSON.parse(resString);
+			} catch (eParse) {
+				deferred.reject(new Error('Failed to parse json response.'));
+			}
+
 			deferred.resolve(parseAvailabilityResponse(resJson, searchOptions));
 		});
 	}).on('error', function(e) {
 		console.log("error in request");
-		deferred.reject(new Error('http error'));
+		deferred.reject(new Error('HTTP request failed:' + e));
 	}).end();
 	return deferred.promise;
 }
@@ -149,7 +166,7 @@ function parseAvailabilityResponse(json, searchOptions) {
 			storeSelectionEnabled	//false
 			.pickupSearchQuote		//"Unavailable for Pickup"
 	*/	
-	if (!json.body || !json.body.stores) {
+	if (!json || !json.body || !json.body.stores) {
 		console.log("No body or no stores in response. Invalid data.");
 		return;
 	}

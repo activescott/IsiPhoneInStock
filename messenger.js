@@ -1,5 +1,6 @@
 var	AWS = require('aws-sdk'),
-	nconf = require('nconf');
+	nconf = require('nconf'),
+	Q = require('q');
 
 module.exports = Messenger;
 
@@ -35,7 +36,9 @@ function Messenger() {
 		nconf.set(Messenger.ConfKeys.SnsTopicArn, 'arn:aws:sns:YOURREGION:SOMENUMBER:YOURTOPICNAME');
 		nconf.save();
 	};
+	// Sends the specified message and returns a promise.
 	this.sendSMS = function(msg) {
+		var deferred = Q.defer();
 		var sns = new AWS.SNS();
 		var params = {
 			Message: msg, /* required */
@@ -45,14 +48,15 @@ function Messenger() {
 		var request = sns.publish(params, function(err, data) {
 			if (err){
 				// error response
+				deferred.reject(new Error(err));
 				console.log(err, err.stack);
 			} 
 			else {
 				// successful response
-				//console.log(data);
-				console.log('sent text message');
+				deferred.resolve(data);
 			}
 		});
+		return deferred.promise;
 	};
 	/*
 	this.sendEmail = function(from, to, subj, msgText, msgHtml) {
