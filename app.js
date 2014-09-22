@@ -20,20 +20,10 @@ var loopOptions = {
 	parts: [ 
 		iphone6['tmobile']['gray']['64'],
 		iphone6['tmobile']['gold']['64'], 
-		iphone6['tmobile']['silver']['64'],
-		iphone6['tmobile']['gray']['128'],
-		iphone6['tmobile']['gold']['128'], 
-		iphone6['tmobile']['silver']['128'],
-
-		iphone6['att']['gray']['64'],
-		iphone6['att']['gold']['64'], 
-		iphone6['att']['silver']['64'],
-		iphone6['att']['gray']['128'],
-		iphone6['att']['gold']['128'], 
-		iphone6['att']['silver']['128']
+		iphone6['tmobile']['silver']['64']
 	],
 	stateFilter: 'WA'
-}
+};
 findMyIPhoneLoop(loopOptions);
 //console.log("prettyName:" + models.prettyNameFromModel(iphone6['att']['gray']['128']))
 
@@ -58,10 +48,10 @@ function findMyIPhoneLoop (searchOptions) {
 			util.log('None found.');
 		}
 		var seconds = 1000;
-		var minutes = 1000*60
+		var minutes = seconds*60;
 		var delay = 10*minutes;
 		process.stdout.write('Waiting ' + delay/seconds + ' seconds.');
-		setTimeout(findMyIPhoneLoop, delay);
+		setTimeout(function () {findMyIPhoneLoop(searchOptions)}, delay);
 
 		var dotToConsole = function() {
 			process.stdout.write('.');
