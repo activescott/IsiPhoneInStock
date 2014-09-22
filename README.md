@@ -1,6 +1,7 @@
 
 
-= Todo =
+#Todo
+
 - + Send a text message when a product is found
 - - Allow searching for multiple products
 	- - Found output needs to indicate product
