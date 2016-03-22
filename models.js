@@ -44,7 +44,103 @@ module.exports = {
 		}
 		return traverse(this);
 	},
-
+   'iphonese': {
+        "tmobile": {
+            "name": "tmobile",
+            "silver": {
+                "16": "MLLV2LL/A",
+                "64": "MLMC2LL/A"
+            },
+            "gold": {
+                "16": "MLXW2LL/A",
+                "64": "MLXY2LL/A"
+            },
+            "gray": {
+                "16": "MLLU2LL/A",
+                "64": "MLMA2LL/A"
+            },
+            "rosegld": {
+                "16": "MLXX2LL/A",
+                "64": "MLY02LL/A"
+            }
+        },
+        "att": {
+            "name": "att",
+            "silver": {
+                "16": "MLLM2LL/A",
+                "64": "MLM52LL/A"
+            },
+            "gold": {
+                "16": "MLXH2LL/A",
+                "64": "MLXK2LL/A"
+            },
+            "gray": {
+                "16": "MLLL2LL/A",
+                "64": "MLM42LL/A"
+            },
+            "rosegld": {
+                "16": "MLXJ2LL/A",
+                "64": "MLXL2LL/A"
+            }
+        },
+        "verizon": {
+            "name": "verizon",
+            "silver": {
+                "16": "MLM02LL/A",
+                "64": "MLMG2LL/A"
+            },
+            "gold": {
+                "16": "MLY52LL/A",
+                "64": "MLY72LL/A"
+            },
+            "gray": {
+                "16": "MLLY2LL/A",
+                "64": "MLMF2LL/A"
+            },
+            "rosegld": {
+                "16": "MLY62LL/A",
+                "64": "MLY82LL/A"
+            }
+        },
+        "sprint": {
+            "name": "sprint",
+            "silver": {
+                "16": "MLM32LL/A",
+                "64": "MLMJ2LL/A"
+            },
+            "gold": {
+                "16": "MLY92LL/A",
+                "64": "MLYC2LL/A"
+            },
+            "gray": {
+                "16": "MLM22LL/A",
+                "64": "MLMH2LL/A"
+            },
+            "rosegld": {
+                "16": "MLYA2LL/A",
+                "64": "MLYD2LL/A"
+            }
+        },
+        "unlocked": {
+            "name": "unlocked",
+            "silver": {
+                "16": "MLLX2LL/A",
+                "64": "MLME2LL/A"
+            },
+            "gold": {
+                "16": "MLY12LL/A",
+                "64": "MLY32LL/A"
+            },
+            "gray": {
+                "16": "MLLW2LL/A",
+                "64": "MLMD2LL/A"
+            },
+            "rosegld": {
+                "16": "MLY22LL/A",
+                "64": "MLY42LL/A"
+            }
+        }
+    },
 	'iphone-6': {
 		name: 'iPhone 6',
 		'tmobile' : {
