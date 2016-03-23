@@ -45,8 +45,9 @@ module.exports = {
 		return traverse(this);
 	},
    'iphonese': {
+       name: 'iPhone SE',
         "tmobile": {
-            "name": "tmobile",
+            "name": "T-Mobile",
             "silver": {
                 "16": "MLLV2LL/A",
                 "64": "MLMC2LL/A"
@@ -65,7 +66,7 @@ module.exports = {
             }
         },
         "att": {
-            "name": "att",
+            "name": "AT&T",
             "silver": {
                 "16": "MLLM2LL/A",
                 "64": "MLM52LL/A"
@@ -84,7 +85,7 @@ module.exports = {
             }
         },
         "verizon": {
-            "name": "verizon",
+            "name": "Verizon",
             "silver": {
                 "16": "MLM02LL/A",
                 "64": "MLMG2LL/A"
@@ -103,7 +104,7 @@ module.exports = {
             }
         },
         "sprint": {
-            "name": "sprint",
+            "name": "Sprint",
             "silver": {
                 "16": "MLM32LL/A",
                 "64": "MLMJ2LL/A"
@@ -122,7 +123,7 @@ module.exports = {
             }
         },
         "unlocked": {
-            "name": "unlocked",
+            "name": "Unlocked",
             "silver": {
                 "16": "MLLX2LL/A",
                 "64": "MLME2LL/A"

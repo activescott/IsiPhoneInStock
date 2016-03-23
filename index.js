@@ -12,20 +12,21 @@ var querystring = require('querystring'),
         models = require('./models'),
         messenger = require('./messenger');
 
-var iphone6 = models['iphone-6'];
-var referer = 'http://store.apple.com/us/buy-iphone/iphone6/4.7-inch-display-64gb-space-gray-t-mobile';
-
 var loopOptions = {
 	zip: '98033',
-	parts: [ 
-		iphone6['tmobile']['gray']['64'],
-		iphone6['tmobile']['gold']['64'], 
-		iphone6['tmobile']['silver']['64']
+	parts: [
+        /* 
+		models['iphone-6']['tmobile']['gold']['64'], 
+		models['iphone-6']['tmobile']['silver']['64']
+        */
+        models['iphonese']['unlocked']['gray']['64'],
+		models['iphonese']['tmobile']['gold']['64'], 
+		models['iphonese']['tmobile']['silver']['64']
+        
 	],
 	stateFilter: 'WA'
 };
 findMyIPhoneLoop(loopOptions);
-//console.log("prettyName:" + models.prettyNameFromModel(iphone6['att']['gray']['128']))
 
 
 var waitingIndicatorTimer;
@@ -34,16 +35,18 @@ function findMyIPhoneLoop (searchOptions) {
 		clearTimeout(waitingIndicatorTimer);
 		process.stdout.write(os.EOL);
 	}
-	util.log('Beginning search...');
+	util.log('Beginning search for:\n • %s...', searchOptions.parts.map((part) => models.prettyNameFromModel(part)).join('\n • '));
 	findMyIPhone(searchOptions)
 	.then(function (foundPhones) {
-		foundPhones.forEach(function (foundPhone) {
-			var msg = models.prettyNameFromModel(foundPhone.name) + ' (' + foundPhone.name + ')' + ' available at store ' + foundPhone.store.name + ' in ' + foundPhone.store.city + ', ' + foundPhone.store.state + '.';
-			util.log(msg);
-			messenger.sendSMS(msg).then(function () {}, function(err) {
-				util.log('error sending sms');
-			});
+        var messageLines = foundPhones.map((foundPhone) => {
+            return models.prettyNameFromModel(foundPhone.name) + ' (' + foundPhone.name + ')' + ' available at ' + foundPhone.store.name + ' in ' + foundPhone.store.city + ', ' + foundPhone.store.state; 
+        });
+        util.log(messageLines.join('\n'));
+        util.log('Sending %s SMS messages to topic %s', messageLines.length, messenger.topicArn);
+		messageLines.forEach( (msg) => { 
+            messenger.sendSMS(msg).then(() => {}, (err) => util.log('error sending sms'));
 		});
+        
 		if (foundPhones.length == 0) {
 			util.log('None found.');
 		}
@@ -89,25 +92,25 @@ function findMyIPhone(searchOptions) {
 	for (var idx=0; idx < searchOptions.parts.length; idx++) {
 		queryObj["parts." + idx.toString()] = searchOptions.parts[idx];
 	}
-
+    
 	var urlObj = {
-		pathname: '/us/retailStore/availabilitySearch',
+		pathname: '/shop/retailStore/availabilitySearch',
 		query: queryObj
 	}
 
 	var httpOptions = {
-	  hostname: 'store.apple.com',
+	  hostname: 'www.apple.com',
 	  path: url.format(urlObj),
 	  method: "GET",
 	  headers: {
-	  	"Host": 'store.apple.com',
+	  	"Host": 'www.apple.com',
 	  	"User-Agent": 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0',
 	  	"Accept": 'application/json, text/javascript, */*; q=0.01',
 	  	"Accept-Language": 'en-US,en;q=0.5',
 	  	//"Accept-Encoding": 'gzip, deflate',
 	  	"DNT": 1,
 	  	"X-Requested-With": 'XMLHttpRequest',
-	  	"Referer": referer,
+	  	"Referer": 'http://store.apple.com/us/buy-iphone/iphone6/4.7-inch-display-64gb-space-gray-t-mobile',
 	  	"Connection": 'keep-alive'
 	  }
 	};
@@ -117,6 +120,10 @@ function findMyIPhone(searchOptions) {
 	var req = http.request(httpOptions, function (res) {
 		res.setEncoding('utf-8');
 		var resString = '';
+        if (res.statusCode != 200) {
+            deferred.reject(new Error(util.format('Unexpected HTTP Status Code (%s). Request failed.', res.statusCode)));
+            return;
+        }
 
 		res.on('data', function(data) {
 			resString += data;
@@ -128,6 +135,7 @@ function findMyIPhone(searchOptions) {
 				resJson = JSON.parse(resString);
 			} catch (eParse) {
 				deferred.reject(new Error('Failed to parse json response.'));
+                return;
 			}
 
 			deferred.resolve(parseAvailabilityResponse(resJson, searchOptions));
@@ -166,7 +174,7 @@ function parseAvailabilityResponse(json, searchOptions) {
 			.pickupSearchQuote		//"Unavailable for Pickup"
 	*/	
 	if (!json || !json.body || !json.body.stores) {
-		console.log("No body or no stores in response. Invalid data.");
+		console.log("No body or no stores in response. Invalid data:", json);
 		return;
 	}
 	if (!json.body.success) {
@@ -176,7 +184,7 @@ function parseAvailabilityResponse(json, searchOptions) {
 	var allStores = json.body.stores;
 	//debugTrace(allStores);
 	var foundParts = [];
-	util.log('Searching ' + allStores.length + ' stores...');
+	console.log('Searching %s stores near zip code %s...', allStores.length, searchOptions.zip);
 	for (var storeIndex=0; storeIndex < allStores.length; storeIndex++) {
 		var aStore = allStores[storeIndex];
 		var parts = aStore.partsAvailability;

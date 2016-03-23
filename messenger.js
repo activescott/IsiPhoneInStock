@@ -31,7 +31,8 @@ function Messenger() {
 	if (!(this instanceof Messenger)) return new Messenger();
 	initAWS();
 	loadConfig();
-
+    this.topicArn = nconf.get(ConfKeys.SnsTopicArn);
+    
 	this.saveDefaultConfig = function() {
 		nconf.set(ConfKeys.SnsTopicArn, 'arn:aws:sns:YOURREGION:SOMENUMBER:YOURTOPICNAME');
 		nconf.save();
@@ -42,7 +43,7 @@ function Messenger() {
 		var sns = new AWS.SNS();
 		var params = {
 			Message: msg, /* required */
-			TopicArn: nconf.get(ConfKeys.SnsTopicArn)
+			TopicArn: this.topicArn
 		};
 
 		var request = sns.publish(params, function(err, data) {
