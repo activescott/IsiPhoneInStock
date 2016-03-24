@@ -121,7 +121,7 @@ function findMyIPhone(searchOptions) {
 		res.setEncoding('utf-8');
 		var resString = '';
         if (res.statusCode != 200) {
-            deferred.reject(new Error(util.format('Unexpected HTTP Status Code (%s). Request failed.', res.statusCode)));
+            deferred.reject(new Error(util.format('Unexpected HTTP Status Code: %s - %s\n Response Headers: %j', res.statusCode, res.statusMessage, res.headers)));
             return;
         }
 
