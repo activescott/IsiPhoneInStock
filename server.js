@@ -30,6 +30,16 @@ findMyIPhoneLoop(loopOptions);
 
 
 var waitingIndicatorTimer;
+
+const SECONDS = 1000;
+const MINUTES = SECONDS * 60;
+
+const STOCK_CHECK_DELAY = MINUTES*10;
+//const STOCK_CHECK_DELAY = SECONDS*5;
+/** Only notify of errors every N minutes */
+const errorNotificationDelayMilliseconds = 90 * MINUTES;
+var lastErrorNotifyTime = Date.now() - errorNotificationDelayMilliseconds; // first error will trigger a notification
+
 function findMyIPhoneLoop (searchOptions) {
 	if (waitingIndicatorTimer != null) {
 		clearTimeout(waitingIndicatorTimer);
@@ -53,21 +63,25 @@ function findMyIPhoneLoop (searchOptions) {
 	}, function(err) {
 		var msg = 'Error performing search:' + err; 
 		console.log(msg);
-		messenger.sendSMS(msg).then(function () {}, function(err) {
-			util.log('error sending sms');
-		});
+        console.log('%s minutes since last error...', (Date.now() - lastErrorNotifyTime) / MINUTES);
+        if (Date.now() - lastErrorNotifyTime > errorNotificationDelayMilliseconds) {
+            console.log('Sending notification of error.');
+            messenger.sendSMS(msg).then( 
+                () => lastErrorNotifyTime = Date.now(), 
+                (err) => util.log('error sending sms: ', err) 
+            );
+        } else {
+            console.log('Delaying notification of error for %s more minutes. NOT sending notification.', (errorNotificationDelayMilliseconds - (Date.now() - lastErrorNotifyTime)) / MINUTES );
+        }
 	})
 	.fin(function() {// fin=finally
 		// restart the loop:
-		var seconds = 1000;
-		var minutes = seconds*60;
-		var delay = minutes*10;
-		process.stdout.write('Waiting ' + delay/seconds + ' seconds.');
-		setTimeout(function () {findMyIPhoneLoop(searchOptions)}, delay);
+		process.stdout.write('Waiting ' + STOCK_CHECK_DELAY/SECONDS + ' seconds.');
+		setTimeout(function () {findMyIPhoneLoop(searchOptions)}, STOCK_CHECK_DELAY);
 
 		var dotToConsole = function() {
 			process.stdout.write('.');
-			waitingIndicatorTimer = setTimeout(dotToConsole, seconds*1);
+			waitingIndicatorTimer = setTimeout(dotToConsole, SECONDS*1);
 		};
 		dotToConsole();
 	})
@@ -121,7 +135,10 @@ function findMyIPhone(searchOptions) {
 		res.setEncoding('utf-8');
 		var resString = '';
         if (res.statusCode != 200) {
-            deferred.reject(new Error(util.format('Unexpected HTTP Status Code: %s - %s\n Response Headers: %j', res.statusCode, res.statusMessage, res.headers)));
+            var msgError = util.format('Unexpected HTTP Status Code: %s - %s', res.statusCode, res.statusMessage);
+            // for addtional detail:
+            // msgError += util.format('\n Response Headers: %j', res.headers);
+            deferred.reject(new Error(msgError));
             return;
         }
 
