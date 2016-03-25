@@ -62,16 +62,16 @@ function findMyIPhoneLoop (searchOptions) {
 		}
 	}, function(err) {
 		var msg = 'Error performing search:' + err; 
-		console.log(msg);
-        console.log('%s minutes since last error...', (Date.now() - lastErrorNotifyTime) / MINUTES);
+		util.log(msg);
+        util.log('%s minutes since last error...', (Date.now() - lastErrorNotifyTime) / MINUTES);
         if (Date.now() - lastErrorNotifyTime > errorNotificationDelayMilliseconds) {
-            console.log('Sending notification of error.');
+            util.log('Sending notification of error.');
             messenger.sendSMS(msg).then( 
                 () => lastErrorNotifyTime = Date.now(), 
                 (err) => util.log('error sending sms: ', err) 
             );
         } else {
-            console.log('Delaying notification of error for %s more minutes. NOT sending notification.', (errorNotificationDelayMilliseconds - (Date.now() - lastErrorNotifyTime)) / MINUTES );
+            util.log('Delaying notification of error for %s more minutes. NOT sending notification.', (errorNotificationDelayMilliseconds - (Date.now() - lastErrorNotifyTime)) / MINUTES );
         }
 	})
 	.fin(function() {// fin=finally
@@ -128,8 +128,6 @@ function findMyIPhone(searchOptions) {
 	  	"Connection": 'keep-alive'
 	  }
 	};
-
-	//console.log('httpOptions:', httpOptions);
 
 	var req = http.request(httpOptions, function (res) {
 		res.setEncoding('utf-8');
@@ -191,17 +189,17 @@ function parseAvailabilityResponse(json, searchOptions) {
 			.pickupSearchQuote		//"Unavailable for Pickup"
 	*/	
 	if (!json || !json.body || !json.body.stores) {
-		console.log("No body or no stores in response. Invalid data:", json);
+		util.log("No body or no stores in response. Invalid data:", json);
 		return;
 	}
 	if (!json.body.success) {
-		console.log("Server error: Failed to return valid data.");
+		util.log("Server error: Failed to return valid data.");
 		return;
 	}
 	var allStores = json.body.stores;
 	//debugTrace(allStores);
 	var foundParts = [];
-	console.log('Searching %s stores near zip code %s...', allStores.length, searchOptions.zip);
+	util.log('Searching %s stores near zip code %s...', allStores.length, searchOptions.zip);
 	for (var storeIndex=0; storeIndex < allStores.length; storeIndex++) {
 		var aStore = allStores[storeIndex];
 		var parts = aStore.partsAvailability;
