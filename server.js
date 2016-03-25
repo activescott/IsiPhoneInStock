@@ -15,13 +15,13 @@ var querystring = require('querystring'),
 var loopOptions = {
 	zip: '98033',
 	parts: [
-        /* 
-		models['iphone-6']['tmobile']['gold']['64'], 
-		models['iphone-6']['tmobile']['silver']['64']
-        */
+         
+		// models['iphone-6']['tmobile']['gold']['64'],
+		// models['iphone-6']['tmobile']['silver']['64']
+        
         models['iphonese']['unlocked']['gray']['64'],
-		models['iphonese']['tmobile']['gold']['64'], 
-		models['iphonese']['tmobile']['silver']['64']
+		models['iphonese']['unlocked']['gold']['64'], 
+		models['iphonese']['unlocked']['silver']['64']
         
 	],
 	stateFilter: 'WA'
@@ -134,8 +134,6 @@ function findMyIPhone(searchOptions) {
 		var resString = '';
         if (res.statusCode != 200) {
             var msgError = util.format('Unexpected HTTP Status Code: %s - %s', res.statusCode, res.statusMessage);
-            // for addtional detail:
-            // msgError += util.format('\n Response Headers: %j', res.headers);
             deferred.reject(new Error(msgError));
             return;
         }
