@@ -1,7 +1,9 @@
-var	AWS = require('aws-sdk'),
+"use strict";
+const AWS = require('aws-sdk'),
 	nconf = require('nconf'),
-	Q = require('q');
-
+	Q = require('q'),
+    util = require('util'),
+    crypto = require('crypto');
 
 var ConfKeys = {
 	SnsTopicArn: 'aws.sns.TopicArn'
@@ -27,11 +29,26 @@ function loadConfig() {
 
 module.exports = new Messenger();
 
+function createHash(message) {
+    if (!(message && Array.isArray(message)))
+        throw new TypeError('Invalid argument. Expected array.');
+    let hash = crypto.createHash('sha256');
+    message.forEach((line) => hash.update(line));
+    return hash.digest('base64');
+}
+
 function Messenger() {
 	if (!(this instanceof Messenger)) return new Messenger();
 	initAWS();
 	loadConfig();
     this.topicArn = nconf.get(ConfKeys.SnsTopicArn);
+    const SECONDS = 1000;
+    const MINUTES = SECONDS * 60;
+    /** Delay duplicate notifications to occur no more than every N milliseconds */
+    const notificationDelayMilliseconds = 90 * MINUTES;
+    /** As part of delaying duplicate notifications, we track the hash of the last notification */
+    this.lastNotificationHash = null;
+    this.lastNotifyTime = Date.now() - notificationDelayMilliseconds; // first error will trigger a notification
     
 	this.saveDefaultConfig = function() {
 		nconf.set(ConfKeys.SnsTopicArn, 'arn:aws:sns:YOURREGION:SOMENUMBER:YOURTOPICNAME');
@@ -45,58 +62,33 @@ function Messenger() {
 			Message: msg, /* required */
 			TopicArn: this.topicArn
 		};
-
 		var request = sns.publish(params, function(err, data) {
-			if (err){
-				// error response
+			if (err) 
 				deferred.reject(new Error(err));
-				console.log(err, err.stack);
-			} 
-			else {
-				// successful response
+			else 
 				deferred.resolve(data);
-			}
 		});
 		return deferred.promise;
 	};
-	/*
-	this.sendEmail = function(from, to, subj, msgText, msgHtml) {
-		//http://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-intro.html
-		//http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/SES.html
 
-		var params = {
-			ToAddresses: [
-			'STRING_VALUE'
-			// more items
-			],	  
-			Message: { // required
-				Body: { // required
-					Html: {
-						Data: 'STRING_VALUE', // required 
-						Charset: 'STRING_VALUE'
-					},
-					Text: {
-						Data: 'STRING_VALUE', // required 
-						Charset: 'STRING_VALUE'
-					}
-				},
-				Subject: { // required 
-					Data: 'STRING_VALUE', //required
-					Charset: 'STRING_VALUE'
-				}
-			},
-			Source: 'STRING_VALUE', // required 
-			ReplyToAddresses: [
-			'STRING_VALUE',
-			// more items
-			],
-			ReturnPath: 'STRING_VALUE'
-		};
-		ses.sendEmail(params, function(err, data) {
-		  if (err) console.log(err, err.stack); // an error occurred
-		  else     console.log(data);           // successful response
-		});
-	}
-	*/
+    this.sendNotification = function (messageLines) {
+        if (!(typeof messageLines === 'string' || Array.isArray(messageLines)))
+            throw new TypeError('Invalid argument. Expected string or array');
+        if (!Array.isArray(messageLines)) {
+            messageLines = [messageLines];
+        }
+        var newHash = createHash(messageLines);
+        var millisecondsSinceLastError = Date.now() - this.lastNotifyTime;
+        util.log('%s minutes since last notification...', millisecondsSinceLastError / MINUTES);
+        if (newHash != this.lastNotificationHash || millisecondsSinceLastError > notificationDelayMilliseconds) {
+            messageLines.forEach( (msg) => { 
+                this.sendSMS(msg).then(() => {}, (err) => util.log('error sending SMS: %s', err));
+            });
+            this.lastNotificationHash = newHash;
+            this.lastNotifyTime = Date.now();
+        } else {
+            util.log('Notification is a duplicate of prior. Delaying this notification for %s more minutes. NOT sending notification.', (notificationDelayMilliseconds - millisecondsSinceLastError) / MINUTES );
+        }
+    }
 };
 

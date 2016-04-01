@@ -1,7 +1,8 @@
+"use strict";
 /*
 	Here's a little ditty about finding an iPhone available for pickup...
 */
-var querystring = require('querystring'),
+const querystring = require('querystring'),
         http = require('http'),
         url = require('url'),
         Q = require('q'),
@@ -15,14 +16,13 @@ var querystring = require('querystring'),
 var loopOptions = {
 	zip: '98033',
 	parts: [
-         
 		// models['iphone-6']['tmobile']['gold']['64'],
-		// models['iphone-6']['tmobile']['silver']['64']
-        
+		// models['iphone-6']['tmobile']['silver']['64']        
         models['iphonese']['unlocked']['gray']['64'],
 		models['iphonese']['unlocked']['gold']['64'], 
-		models['iphonese']['unlocked']['silver']['64']
-        
+		models['iphonese']['unlocked']['silver']['64'],
+        models['iphonese']['tmobile']['silver']['64'],
+        models['iphonese']['tmobile']['gold']['64']
 	],
 	stateFilter: 'WA'
 };
@@ -34,11 +34,8 @@ var waitingIndicatorTimer;
 const SECONDS = 1000;
 const MINUTES = SECONDS * 60;
 
-const STOCK_CHECK_DELAY = MINUTES*10;
+const STOCK_CHECK_DELAY = MINUTES*5;
 //const STOCK_CHECK_DELAY = SECONDS*5;
-/** Only notify of errors every N minutes */
-const errorNotificationDelayMilliseconds = 90 * MINUTES;
-var lastErrorNotifyTime = Date.now() - errorNotificationDelayMilliseconds; // first error will trigger a notification
 
 function findMyIPhoneLoop (searchOptions) {
 	if (waitingIndicatorTimer != null) {
@@ -53,26 +50,14 @@ function findMyIPhoneLoop (searchOptions) {
                 return models.prettyNameFromModel(foundPhone.name) + ' (' + foundPhone.name + ')' + ' available at ' + foundPhone.store.name + ' in ' + foundPhone.store.city + ', ' + foundPhone.store.state; 
             });
             util.log(messageLines.join('\n'));
-            util.log('Sending %s SMS messages to topic %s', messageLines.length, messenger.topicArn);
-            messageLines.forEach( (msg) => { 
-                messenger.sendSMS(msg).then(() => {}, (err) => util.log('error sending sms'));
-            });
+            messenger.sendNotification(messageLines);
         } else {
 			util.log('No phones found in stores.');
 		}
 	}, function(err) {
 		var msg = 'Error performing search:' + err; 
 		util.log(msg);
-        util.log('%s minutes since last error...', (Date.now() - lastErrorNotifyTime) / MINUTES);
-        if (Date.now() - lastErrorNotifyTime > errorNotificationDelayMilliseconds) {
-            util.log('Sending notification of error.');
-            messenger.sendSMS(msg).then( 
-                () => lastErrorNotifyTime = Date.now(), 
-                (err) => util.log('error sending sms: ', err) 
-            );
-        } else {
-            util.log('Delaying notification of error for %s more minutes. NOT sending notification.', (errorNotificationDelayMilliseconds - (Date.now() - lastErrorNotifyTime)) / MINUTES );
-        }
+        messenger.sendNotification(msg);
 	})
 	.fin(function() {// fin=finally
 		// restart the loop:
@@ -86,7 +71,6 @@ function findMyIPhoneLoop (searchOptions) {
 		dotToConsole();
 	})
 	.done();
-	
 }
 
 /*
