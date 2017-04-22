@@ -447,5 +447,9 @@ module.exports = {
                 '128':  'MF121LL/A'
             }
         }
-    }
+    },
+	airpods: {
+		name: 'AirPods',
+		white: 'MMEF2AM/A'
+	}
 };
