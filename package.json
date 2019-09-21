@@ -1,11 +1,20 @@
 {
   "name": "IsiPhoneInStock",
   "version": "1.0.0",
-  "description": "Here's a little ditty about finding an iPhone available for pickup...",
-  "bin" : { "isiphoneinstock" : "index.js" },
-  "main": "index.js",
+  "description": "Here's a little ditty about finding an iPhone, Apple Watch, etc. available for pickup...",
+  "bin": {
+    "isiphoneinstock": "dist/index.js"
+  },
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:es": "rm -rfd ./dist/es; ./node_modules/.bin/tsc --project tsconfig.es.json",
+    "build": "rm -rfd ./dist && yarn run build:es",
+    "lint": "./node_modules/.bin/prettier -l \"{,!(node_modules)/**/}*.{ts,tsx,md,yml,json,html}\" && yarn run eslint",
+    "eslint": "./node_modules/.bin/eslint . --ext .ts",
+    "lint-fix": "yarn run eslint --fix && ./node_modules/.bin/prettier --write \"{,!(node_modules)/**/}*.{ts,tsx,md,yml,json,html}\"",
+    "test": "./node_modules/.bin/jest --coverage",
+    "dev": "./node_modules/.bin/jest --watch",
+    "pretest": "echo SKIPPING yarn run lint"
   },
   "repository": {
     "type": "git",
@@ -19,7 +28,22 @@
   "homepage": "https://github.com/activescott/IsiPhoneInStock",
   "dependencies": {
     "aws-sdk": "^2.0.17",
+    "isomorphic-fetch": "^2.2.1",
     "nconf": "^0.6.9",
     "q": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/isomorphic-fetch": "0.0.35",
+    "@types/jest": "^24.0.18",
+    "@types/node": "^12.7.5",
+    "@typescript-eslint/eslint-plugin": "^2.3.0",
+    "@typescript-eslint/parser": "^2.3.0",
+    "eslint": "^6.4.0",
+    "eslint-config-prettier": "^6.3.0",
+    "jest": "^24.9.0",
+    "prettier": "^1.18.2",
+    "ts-jest": "^24.1.0",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.6.3"
   }
 }
